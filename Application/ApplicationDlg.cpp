@@ -12,6 +12,33 @@
 #include "Utils.h"
 #include <omp.h>
 
+namespace {
+	void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red)
+	//void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red, std::vector<int>&Green, , std::vector<int>&Blue)
+	{
+		Red.clear();
+		//Green.clear();
+		//Blue.clear();
+		Red.assign(256, 0);
+		//Green.assign(256, 0);
+		//Blue.assign(256, 0);
+		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
+
+		for (int x = 0; x <= pBitmap->GetWidth(); x++)
+		{
+			for (int y = 0; y <= pBitmap->GetHeight(); y++)
+			{
+				Gdiplus::Color color;
+				pBitmap->GetPixel(x, y, &color);
+				
+				Red[color.GetRed()]++;
+			//	Green[color.GetGreen()]++;
+			//	Blue[color.GetBlue()]++;
+			}
+		}
+	}
+}
+#
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -242,6 +269,8 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_COMMAND(ID_LOG_CLEAR, OnLogClear)
 	ON_UPDATE_COMMAND_UI(ID_LOG_CLEAR, OnUpdateLogClear)
 	ON_WM_DESTROY()
+	ON_COMMAND(ID_HSTGRM, &CApplicationDlg::OnHstgrmRed)
+	ON_UPDATE_COMMAND_UI(ID_HSTGRM, &CApplicationDlg::OnUpdateHstgrmRed)
 END_MESSAGE_MAP()
 
 
@@ -583,10 +612,8 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 	if (pos)
 		csFileName = m_csDirectory + m_ctrlFileList.GetItemText(m_ctrlFileList.GetNextSelectedItem(pos), 0);
 
-	if (!csFileName.IsEmpty())
-	{
-		m_pBitmap = Gdiplus::Bitmap::FromFile(csFileName);
-	}
+	LoadAndCalc(csFileName, m_pBitmap, m_vHistRed);
+	//LoadAndCalc(csFileName, m_pBitmap, m_vHistRed, m_vHistGreen, m_vHistBlue);
 
 	m_ctrlImage.Invalidate();
 
@@ -618,3 +645,19 @@ void CApplicationDlg::OnUpdateLogClear(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(::IsWindow(m_ctrlLog.m_hWnd) && m_ctrlLog.IsWindowVisible());
 }
+
+
+void CApplicationDlg::OnHstgrmRed()
+{
+	
+	// TODO: Add your command handler code here
+}
+
+
+void CApplicationDlg::OnUpdateHstgrmRed(CCmdUI *pCmdUI)
+{
+	// TODO: update histogramu, zaskrtnutie aleo zakazanie
+	
+}
+
+

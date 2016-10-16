@@ -6,6 +6,8 @@
 
 #include "LogDlg.h"
 #include <GdiPlus.h>
+#include <vector>
+
 
 class CStaticImage : public CStatic
 {
@@ -22,6 +24,11 @@ class CStaticHistogram : public CStatic
 // CApplicationDlg dialog
 class CApplicationDlg : public CDialogEx
 {
+	std::vector<int> m_vHistRed;
+	std::vector<int> m_vHistGreen;
+	std::vector<int> m_vHistBlue;
+	std::vector<int> m_vHistBright;
+
 // Construction
 public:
 	enum
@@ -54,7 +61,7 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-
+	
 public:
 	afx_msg void OnFileOpen();
 	afx_msg void OnUpdateFileOpen(CCmdUI *pCmdUI);
@@ -67,6 +74,7 @@ public:
 	afx_msg LRESULT OnDrawImage(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDrawHistogram(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnDestroy();
+	
 protected:
 	CListCtrl m_ctrlFileList;
 	CStaticImage m_ctrlImage;
@@ -88,4 +96,6 @@ public:
 	afx_msg void OnUpdateLogOpen(CCmdUI *pCmdUI);
 	afx_msg void OnLogClear();
 	afx_msg void OnUpdateLogClear(CCmdUI *pCmdUI);
+	afx_msg void OnHstgrmRed();
+	afx_msg void OnUpdateHstgrmRed(CCmdUI *pCmdUI);
 };
