@@ -27,7 +27,6 @@ class CApplicationDlg : public CDialogEx
 	std::vector<int> m_vHistRed;
 	std::vector<int> m_vHistGreen;
 	std::vector<int> m_vHistBlue;
-	std::vector<int> m_vHistBright;
 
 // Construction
 public:

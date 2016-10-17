@@ -13,26 +13,28 @@
 #include <omp.h>
 
 namespace {
-	//void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red)
-	void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red, std::vector<int>&Green, std::vector<int>&Blue)
+	void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red, std::vector<int>&Green, std::vector<int>&Blue, std::vector<int>&Bright)
 	{
 		Red.clear();
 		Green.clear();
 		Blue.clear();
+		Bright.clear();
 		Red.assign(256, 0);
 		Green.assign(256, 0);
 		Blue.assign(256, 0);
+		Bright.assign(256, 0);
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
 
-		for (int x = 0; x <= pBitmap->GetWidth(); x++)
+		for (int x = 0; x < pBitmap->GetWidth(); x++)
 		{
-			for (int y = 0; y <= pBitmap->GetHeight(); y++)
+			for (int y = 0; y < pBitmap->GetHeight(); y++)
 			{
 				Gdiplus::Color color;
 				pBitmap->GetPixel(x, y, &color);
 				Red[color.GetRed()]++;
 				Green[color.GetGreen()]++;
 				Blue[color.GetBlue()]++;
+				Bright[color.GetAlpha()]++;
 			}
 		}
 	}
@@ -611,8 +613,7 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 	if (pos)
 		csFileName = m_csDirectory + m_ctrlFileList.GetItemText(m_ctrlFileList.GetNextSelectedItem(pos), 0);
 
-	//LoadAndCalc(csFileName, m_pBitmap, m_vHistRed)
-	LoadAndCalc(csFileName, m_pBitmap, m_vHistRed,m_vHistGreen,m_vHistBlue);
+	LoadAndCalc(csFileName, m_pBitmap, m_vHistRed,m_vHistGreen,m_vHistBlue,m_vHistAlpha);
 
 	m_ctrlImage.Invalidate();
 
