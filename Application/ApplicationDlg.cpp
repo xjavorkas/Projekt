@@ -30,6 +30,7 @@ namespace {
 			{
 				Gdiplus::Color color;
 				pBitmap->GetPixel(x, y, &color);
+
 				Red[color.GetRed()]++;
 				Green[color.GetGreen()]++;
 				Blue[color.GetBlue()]++;
