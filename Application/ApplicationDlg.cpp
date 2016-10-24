@@ -24,13 +24,12 @@ namespace {
 		Blue.assign(256, 0);
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
 
-		for (int x = 0; x <= pBitmap->GetWidth(); x++)
+		for (int x = 0; x < pBitmap->GetWidth(); x++)
 		{
-			for (int y = 0; y <= pBitmap->GetHeight(); y++)
+			for (int y = 0; y < pBitmap->GetHeight(); y++)
 			{
 				Gdiplus::Color color;
 				pBitmap->GetPixel(x, y, &color);
-
 				Red[color.GetRed()]++;
 				Green[color.GetGreen()]++;
 				Blue[color.GetBlue()]++;
@@ -49,13 +48,15 @@ namespace {
 
 void CStaticImage::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-	GetParent()->SendMessage( CApplicationDlg::WM_DRAW_IMAGE, (WPARAM)lpDrawItemStruct);
+	GetParent()->SendMessage(CApplicationDlg::WM_DRAW_IMAGE, (WPARAM)lpDrawItemStruct);
 }
 
 void CStaticHistogram::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-	GetParent()->SendMessage( CApplicationDlg::WM_DRAW_HISTOGRAM, (WPARAM)lpDrawItemStruct);
+	GetParent()->SendMessage(CApplicationDlg::WM_DRAW_HISTOGRAM, (WPARAM)lpDrawItemStruct);
 }
+
+
 
 
 // CAboutDlg dialog used for App About
@@ -65,7 +66,7 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg() : CDialogEx(IDD_ABOUTBOX) {}
 
-// Dialog Data
+	// Dialog Data
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
@@ -76,7 +77,7 @@ protected:
 		CDialogEx::DoDataExchange(pDX);
 	}
 
-// Implementation
+	// Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -294,6 +295,78 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 
 	pDC->FillSolidRect(&(lpDI->rcItem), RGB(255, 255, 255));
 
+	if (m_vHistRed.size() == 0)
+	{
+		return S_OK;
+	}
+
+	if (m_vHistGreen.size() == 0)
+	{
+		return S_OK;
+	}
+
+	if (m_vHistBlue.size() == 0)
+	{
+		return S_OK;
+	}
+
+	int left = lpDI->rcItem.left;
+	int right = lpDI->rcItem.right;
+	int top = lpDI->rcItem.top;
+	int bottom = lpDI->rcItem.bottom;
+	int width = right - left;
+	int height = bottom - top;
+
+	double ScalX = double(width) / 256.;
+
+	int m_max = 0;
+
+	for (int x = 0; x < (int)m_vHistRed.size(); x++)
+	{
+		if (m_vHistRed[x] > m_max) {
+			m_max = m_vHistRed[x];
+		}
+	}
+
+	double ScalY = double(height) / double(log(m_max));
+
+	for (int x = 0; x < (int)m_vHistRed.size(); x++)
+	{
+		double dHeight = (double)(log(m_vHistRed[x])) * (double)ScalY;
+		CRect Rectangle(ScalX*x, bottom - dHeight, ScalX*x + 1, bottom);
+		pDC->FillSolidRect(Rectangle, RGB(255, 0, 0));
+	}
+
+
+	for (int x = 0; x < (int)m_vHistGreen.size(); x++)
+	{
+		if (m_vHistGreen[x] > m_max) {
+			m_max = m_vHistGreen[x];
+		}
+	}
+
+	for (int x = 0; x < (int)m_vHistGreen.size(); x++)
+	{
+		double dHeight = (double)(log(m_vHistGreen[x])) * (double)ScalY;
+		CRect Rectangle(ScalX*x, bottom - dHeight, ScalX*x + 1, bottom);
+		pDC->FillSolidRect(Rectangle, RGB(0, 255, 0));
+	}
+
+
+	for (int x = 0; x < (int)m_vHistBlue.size(); x++)
+	{
+		if (m_vHistBlue[x] > m_max) {
+			m_max = m_vHistBlue[x];
+		}
+	}
+
+	for (int x = 0; x < (int)m_vHistBlue.size(); x++)
+	{
+		double dHeight = (double)(log(m_vHistBlue[x])) * (double)ScalY;
+		CRect Rectangle(ScalX*x, bottom - dHeight, ScalX*x + 1, bottom);
+		pDC->FillSolidRect(Rectangle, RGB(0, 0, 255));
+	}
+
 	CBrush brBlack(RGB(0, 0, 0));
 	pDC->FrameRect(&(lpDI->rcItem), &brBlack);
 
@@ -441,7 +514,7 @@ BOOL CApplicationDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	// TODO: Add extra initialization here
+									// TODO: Add extra initialization here
 	CRect rct;
 	m_ctrlFileList.GetClientRect(&rct);
 	m_ctrlFileList.InsertColumn(0, _T("Filename"), 0, rct.Width());
@@ -546,7 +619,7 @@ void CApplicationDlg::OnFileOpen()
 
 		std::vector<CString> names;
 
-		std::tie( m_csDirectory, names) = Utils::ParseFiles(cs);
+		std::tie(m_csDirectory, names) = Utils::ParseFiles(cs);
 
 		for (int i = 0; i < (int)names.size(); ++i)
 		{
@@ -613,7 +686,16 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 		csFileName = m_csDirectory + m_ctrlFileList.GetItemText(m_ctrlFileList.GetNextSelectedItem(pos), 0);
 
 	//LoadAndCalc(csFileName, m_pBitmap, m_vHistRed)
-	LoadAndCalc(csFileName, m_pBitmap, m_vHistRed,m_vHistGreen,m_vHistBlue);
+
+	if (csFileName.IsEmpty())
+	{
+		return;
+	}
+
+	else
+	{
+		LoadAndCalc(csFileName, m_pBitmap, m_vHistRed, m_vHistGreen, m_vHistBlue);
+	}
 
 	m_ctrlImage.Invalidate();
 
@@ -637,7 +719,7 @@ void CApplicationDlg::OnUpdateLogOpen(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnLogClear()
 {
-	m_ctrlLog.SendMessage( CLogDlg::WM_TEXT);
+	m_ctrlLog.SendMessage(CLogDlg::WM_TEXT);
 }
 
 
@@ -649,7 +731,7 @@ void CApplicationDlg::OnUpdateLogClear(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnHstgrmRed()
 {
-	
+
 	// TODO: Add your command handler code here
 }
 
@@ -657,7 +739,7 @@ void CApplicationDlg::OnHstgrmRed()
 void CApplicationDlg::OnUpdateHstgrmRed(CCmdUI *pCmdUI)
 {
 	// TODO: update histogramu, zaskrtnutie aleo zakazanie
-	
+
 }
 
 
