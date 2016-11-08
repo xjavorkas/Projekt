@@ -15,7 +15,7 @@
 namespace {
 	//void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red)
 	void LoadAndCalc(CString fileName, Gdiplus::Bitmap* pBitmap, std::vector<int>&Red, std::vector<int>&Green, std::vector<int>&Blue)
-	{
+	{	
 		Red.clear();
 		Green.clear();
 		Blue.clear();
@@ -24,7 +24,29 @@ namespace {
 		Blue.assign(256, 0);
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
 
-		for (int x = 0; x < pBitmap->GetWidth(); x++)
+		Gdiplus::Rect ret;
+		Gdiplus::BitmapData bmpData;
+
+		pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, Gdiplus::PixelFormat PixelFormat32bppRGB, &bmpData);
+		
+		
+		for (int y = 0; y < ret.Height; y++) {
+			 uint32_t* pLine = (uint32_t*)((uint8_t*)bmpData.Scan0 + bmpData.Stride*y);
+				for (int x = 0; x < ret.Width; x++) {
+					int r = ((*pLine) >> 16)&0xff;
+					int g = ((*pLine) >> 8)&0xff;
+					int b = ((*pLine))&0xff;
+					Red[r]++;
+					Green[g]++;
+					Blue[b]++;
+					pLine++;
+				}
+			}
+
+	
+
+
+	/*	for (int x = 0; x < pBitmap->GetWidth(); x++)
 		{
 			for (int y = 0; y < pBitmap->GetHeight(); y++)
 			{
@@ -34,7 +56,7 @@ namespace {
 				Green[color.GetGreen()]++;
 				Blue[color.GetBlue()]++;
 			}
-		}
+		} */
 	}
 }
 
@@ -687,15 +709,14 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	//LoadAndCalc(csFileName, m_pBitmap, m_vHistRed)
 
-	if (csFileName.IsEmpty())
+	/*if (csFileName.IsEmpty())
 	{
 		return;
-	}
+	}*/
 
-	else
-	{
-		LoadAndCalc(csFileName, m_pBitmap, m_vHistRed, m_vHistGreen, m_vHistBlue);
-	}
+	
+	LoadAndCalc(csFileName, m_pBitmap, m_vHistRed, m_vHistGreen, m_vHistBlue);
+
 
 	m_ctrlImage.Invalidate();
 
